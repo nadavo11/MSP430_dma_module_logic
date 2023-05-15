@@ -1,53 +1,48 @@
 #include  "../header/api.h"    		// private library - API layer
 #include  "../header/app.h"    		// private library - APP layer
+#include  <stdio.h>
 
 enum FSMstate state;
+unsigned int KB;
 enum SYSmode lpm_mode;
+unsigned int i = 0;
+char index[2];
+
 
 void main(void){
-  
-  
-  state = state0;
-  lpm_mode = mode0;
-  sysConfig();
-  lcd_init();
-  wait_1_sec();
-  lcd_clear();
-  lcd_home();
-  lcd_data(0x37);
-  enable_interrupts();
 
+  state = state0;  // start in idle state on RESET
+  lpm_mode = mode0;     // start in idle state on RESET
+  sysConfig();     // Configure GPIO, Stop Timers, Init LCD
+
+  lcd_data('a');
 
   while(1){
-	switch(state){
-	  case state0: //idle
+
+      switch(state){
+	  case state0: //idle - Sleep
 	      enterLPM(mode0);
 	      break;
-		 
-	  case state1: //PB0 
+	  case state1: //PB0 recorder
+	      uart_start();
 	    break;
 
-	  case state2: //PB1
-	    lcd_clear();
-        CountUp();
-	    CountDown();
+	  case state2: //PB1 Audio player
+	      rowSwapDMA(1,2);
+	      scroll();
+	      break;
+		
+      case state3: ; // PB2/3 For final lab
+		break;
 
-            lcd_clear();
-            if (state == state2)
-               state = state0;
-            break;
-                    
-          case state3: ; //PB2
-            lcd_clear();
-            enable_interrupts();
-            
-            break;
-                
+      case state4: //
+		break;
+		
 	}
   }
 }
 
-  ////updated 9:55
+  
   
   
   

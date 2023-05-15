@@ -1,89 +1,88 @@
 #include  "../header/halGPIO.h"     // private library - HAL layer
-#include "stdio.h"
 
-#define KEYPAD_ROWS 4
-#define KEYPAD_COLS 4
+// Global Variables
+unsigned int EndOfRecord = 0;
+int Octava6Freqs[] = {note0, note1, note2, note3, note4, note5, note6, note7, note8, note9, note10, note11, note12};
+int j=0;
+unsigned int KBIFG = 0;
 
-// Keypad matrix definition
-const char keypad[KEYPAD_ROWS][KEYPAD_COLS] = {
-    {'1', '2', '3', 'A'},
-    {'4', '5', '6', 'B'},
-    {'7', '8', '9', 'C'},
-    {'*', '0', '#', 'D'}
-};
-
-
-//                        Wait 1 sec
-void wait_1_sec(){
-  startTimerA0();
-  startTimerA0();
-}
-
-
-
-
-//System Configuration
-
+//--------------------------------------------------------------------
+//             System Configuration  
+//--------------------------------------------------------------------
 void sysConfig(void){ 
-    GPIOconfig();
-    TIMER0_A0_config();
-
+	GPIOconfig();
+	StopAllTimers();
+	lcd_init();
+	lcd_clear();
 }
-
-
-//              Set Byte to Port
-
+//--------------------------------------------------------------------
+//--------------------------------------------------------------------
+// 				Set Byte to Port
+//--------------------------------------------------------------------
 void SetByteToPort(char ch){
-    PBsArrPortOut |= ch;
+	PBsArrPortOut |= ch;  
 } 
-
-//              Clear Port Byte
-
+//--------------------------------------------------------------------
+// 				Clear Port Byte
+//--------------------------------------------------------------------
 void clrPortByte(char ch){
-    PBsArrPortOut &= ~ch;
+	PBsArrPortOut &= ~ch;
 } 
+//---------------------------------------------------------------------
+//            General Function - No need
+//---------------------------------------------------------------------
+void int2str(char *str, unsigned int num){
+    int strSize = 0;
+    long tmp = num, len = 0;
+    int j;
+    // Find the size of the intPart by repeatedly dividing by 10
+    while(tmp){
+        len++;
+        tmp /= 10;
+    }
 
-//            Polling based Delay function
-
-void delay(unsigned int t){  //
-    volatile unsigned int i;
-
-    for(i=t; i>0; i--);
+    // Print out the numbers in reverse
+    for(j = len - 1; j >= 0; j--){
+        str[j] = (num % 10) + '0';
+        num /= 10;
+    }
+    strSize += len;
+    str[strSize] = '\0';
 }
-
-
+//---------------------------------------------------------------------
 //            Enter from LPM0 mode
-
+//---------------------------------------------------------------------
 void enterLPM(unsigned char LPM_level){
-    if (LPM_level == 0x00)
-      _BIS_SR(LPM1_bits);     /* Enter Low Power Mode 0 */
+	if (LPM_level == 0x00) 
+	  _BIS_SR(LPM0_bits);     /* Enter Low Power Mode 0 */
         else if(LPM_level == 0x01) 
-      _BIS_SR(LPM1_bits);     /* Enter Low Power Mode 1 */
+	  _BIS_SR(LPM1_bits);     /* Enter Low Power Mode 1 */
         else if(LPM_level == 0x02) 
-      _BIS_SR(LPM2_bits);     /* Enter Low Power Mode 2 */
-    else if(LPM_level == 0x03)
-      _BIS_SR(LPM3_bits);     /* Enter Low Power Mode 3 */
+	  _BIS_SR(LPM2_bits);     /* Enter Low Power Mode 2 */
+	else if(LPM_level == 0x03) 
+	  _BIS_SR(LPM3_bits);     /* Enter Low Power Mode 3 */
         else if(LPM_level == 0x04) 
-      _BIS_SR(LPM4_bits);     /* Enter Low Power Mode 4 */
+	  _BIS_SR(LPM4_bits);     /* Enter Low Power Mode 4 */
 }
-
+//---------------------------------------------------------------------
 //            Enable interrupts
-
+//---------------------------------------------------------------------
 void enable_interrupts(){
   _BIS_SR(GIE);
 }
-
+//---------------------------------------------------------------------
 //            Disable interrupts
-
+//---------------------------------------------------------------------
 void disable_interrupts(){
   _BIC_SR(GIE);
 }
 
+//---------------------------------------------------------------------
 //            LCD
-
-
-//             send a command to the LCD
-
+//---------------------------------------------------------------------
+//******************************************************************
+// send a command to the LCD
+//******************************************************************
 void lcd_cmd(unsigned char c){
 
     LCD_WAIT; // may check LCD busy flag, or just delay a little, depending on lcd.h
@@ -103,8 +102,9 @@ void lcd_cmd(unsigned char c){
         lcd_strobe();
     }
 }
-
-//                       send data to the LCD
+//******************************************************************
+// send data to the LCD
+//******************************************************************
 void lcd_data(unsigned char c){
 
     LCD_WAIT; // may check LCD busy flag, or just delay a little, depending on lcd.h
@@ -129,65 +129,17 @@ void lcd_data(unsigned char c){
 
     LCD_RS(0);
 }
-
-//                write a string of chars to the LCD
-
+//******************************************************************
+// write a string of chars to the LCD
+//******************************************************************
 void lcd_puts(const char * s){
 
     while(*s)
         lcd_data(*s++);
 }
-
-//    write frequency template to LCD
-
-void write_freq_tmp_LCD(){
-   lcd_clear();
-   lcd_home();
-    const char SquareWaveFreq[] = "fin=";
-    const char Hz[] = "Hz";
-     lcd_puts(SquareWaveFreq);
-     lcd_cursor_right();
-     lcd_cursor_right();
-     lcd_cursor_right();
-     lcd_cursor_right();
-     lcd_cursor_right();
-     lcd_puts(Hz);
-}
-//    write signal shape template to LCD
-
-void write_signal_shape_tmp_LCD(){
-   lcd_clear();
-   lcd_home();
-    const char signal_shape[] = "signal shape: ";
-     lcd_puts(signal_shape);
-     lcd_new_line;
-}
-
+//******************************************************************
 // initialize the LCD
-
-/******************************************************************
- * Displays a two-digit integer on the LCD screen.
- * If the integer is less than 10, a leading zero is displayed.
- *
- * @param num The integer to display (should be between 0 and 99).
- */
-void lcd_print_num(int num) {
-  // Extract the tens and ones digits
-  int tens = num / 10 + 0x30;
-  int ones = num % 10 + 0x30;
-
-  // Display the tens digit
-
-  lcd_data((char)tens);
-
-
-  // Display the ones digit
-  lcd_data((char)ones);
-}
-
-
-
-
+//******************************************************************
 void lcd_init(){
 
     char init_value;
@@ -230,183 +182,190 @@ void lcd_init(){
     lcd_cmd(0x6); //Entry Mode
     lcd_cmd(0x80); //Initialize DDRAM address to zero
 }
-
+//******************************************************************
 // lcd strobe functions
-
+//******************************************************************
 void lcd_strobe(){
   LCD_EN(1);
   asm("NOP");
  // asm("NOP");
   LCD_EN(0);
 }
-
-
-
-
-// The " DelayUs" function  Delay usec functions
-//parameter and outputs the corresponding number on an LCD display.
+//---------------------------------------------------------------------
+//                     Polling delays
+//---------------------------------------------------------------------
+//******************************************************************
+// Delay usec functions
+//******************************************************************
 void DelayUs(unsigned int cnt){
 
     unsigned char i;
     for(i=cnt ; i>0 ; i--) asm("nop"); // tha command asm("nop") takes raphly 1usec
 
 }
-
+//******************************************************************
 // Delay msec functions
-
+//******************************************************************
 void DelayMs(unsigned int cnt){
 
     unsigned char i;
     for(i=cnt ; i>0 ; i--) DelayUs(1000); // tha command asm("nop") takes raphly 1usec
 
 }
+//******************************************************************
+//            Polling based Delay function
+//******************************************************************
+void delay(unsigned int t){  //
+    volatile unsigned int i;
 
-
-/******************************************************************************
- *
- *                          get ADC
- *
- *____________________________________________________________________________
-* @brief Reads the value from the ADC10 module and returns it.
-*
-* @return The converted value from the ADC10 module.
-*
-* @note This function enables the ADC10 module, starts a conversion, waits for the
-*       conversion to complete, and then disables the ADC10 module. The converted
-*       value is read from the ADC10MEM register and returned.
-******************************************************************************/
-
-/******************************************************************************
- *
- *                          TimerA0 ISR
- *
- *____________________________________________________________________________
-
-******************************************************************************/
-
-#if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
-#pragma vector = TIMER0_A0_VECTOR
-__interrupt void Timer_A (void)
-#elif defined(__GNUC__)
-void __attribute__ ((interrupt(TIMER0_A0_VECTOR))) Timer_A (void)
-#else
-#error Compiler not supported!
-#endif
-{
-
-    LPM0_EXIT;
-    TACTL = MC_0+TACLR;
+    for(i=t; i>0; i--);
 }
+//---------------**************************----------------------------
+//               Interrupt Services Routines
+//---------------**************************----------------------------
 
-/******************************************************************************
- *
- *                          ADC ISR
- *
- *____________________________________________________________________________
-
-******************************************************************************/
-#pragma vector = ADC10_VECTOR
-__interrupt void ADC10_ISR (void)
-{
-    __bic_SR_register_on_exit(CPUOFF);
-}
-
-
-/******************************************************************************
- *
- *                          Buttons ISR
- *
- *____________________________________________________________________________
-
-******************************************************************************/
-#pragma vector=PORT1_VECTOR
+//*********************************************************************
+//            Port1 Interrupt Service Routine
+//*********************************************************************
+#pragma vector=PORT1_VECTOR  // For Push Buttons
   __interrupt void PBs_handler(void){
-   
-    delay(debounceVal);
-
+	delay(debounceVal);
+//---------------------------------------------------------------------
 //            selector of transition between states
-
-    if(PBsArrIntPend & PB0){
-      state = state1;
-      PBsArrIntPend &= ~PB0;
-        }
-        else if(PBsArrIntPend & PB1){
-      state = state2;
-      PBsArrIntPend &= ~PB1;
-        }
-    else if(PBsArrIntPend & PB2){
-      state = state3;
-      PBsArrIntPend &= ~PB2;
-        }
-
-//            Exit from a given LPM 
-
-        switch(lpm_mode){
-        case mode0:
-         LPM0_EXIT; // must be called from ISR only
-         break;
-
-        case mode1:
-         LPM1_EXIT; // must be called from ISR only
-         break;
-
-        case mode2:
-         LPM2_EXIT; // must be called from ISR only
-         break;
-                 
-                case mode3:
-         LPM3_EXIT; // must be called from ISR only
-         break;
-                 
-                case mode4:
-         LPM4_EXIT; // must be called from ISR only
-         break;
+//---------------------------------------------------------------------
+	if(PBsArrIntPend & PB0){
+	    state = state1;
+	    PBsArrIntPend &= ~PB0;
+	}
+	// If PB1, Show LCD Menu and reset scroll
+    else if(PBsArrIntPend & PB1){
+        state = state2;
+        lcd_clear();
+        lcd_home();
+	    PBsArrIntPend &= ~PB1;
     }
+	// If PB2, Show LCD Menu according the scroll value
+    else if(PBsArrIntPend & PB2){
+
+	    PBsArrIntPend &= ~PB2;
+        }
+//---------------------------------------------------------------------
+//            Exit from a given LPM 
+//---------------------------------------------------------------------	
+        switch(lpm_mode){
+		case mode0:
+		 LPM0_EXIT; // must be called from ISR only
+		 break;
+		 
+		case mode1:
+		 LPM1_EXIT; // must be called from ISR only
+		 break;
+		 
+		case mode2:
+		 LPM2_EXIT; // must be called from ISR only
+		 break;
+                 
+        case mode3:
+		 LPM3_EXIT; // must be called from ISR only
+		 break;
+                 
+        case mode4:
+		 LPM4_EXIT; // must be called from ISR only
+		 break;
+	}
         
 }
 
-  /******************************************************************************
-   *
-   *                          Keypad ISR
-   *
-   *____________________________________________________________________________
 
-   *      Port2 Interrupt Service Routine
-  ******************************************************************************/
+//*********************************************************************
+//            Port2 Interrupt Service Routine
+//*********************************************************************
+#pragma vector=PORT2_VECTOR  // For KeyPad
+  __interrupt void PBs_handler_P2(void){
+      delay(debounceVal);
+//---------------------------------------------------------------------
+//            selector of transition between states
+//---------------------------------------------------------------------
+      if(KeypadIRQIntPend & BIT1){    // if keypad has been pressed find value
+          KB = 75;
+          KeypadPortOUT = 0x0E;
+          if ( ( KeypadPortIN & 0x10 ) == 0 )  KB = 15;
+          else if ( ( KeypadPortIN & 0x20 ) == 0 )  KB = 14;
+          else if ( ( KeypadPortIN & 0x40 ) == 0 )  KB = 13;
+          else if ( ( KeypadPortIN & 0x80 ) == 0 ) KB = 12;
 
+          KeypadPortOUT = 0x0D;
+          if ( ( KeypadPortIN & 0x10 ) == 0 )  KB = 11;
+          else if ( ( KeypadPortIN & 0x20 ) == 0 )  KB = 10;
+          else if ( ( KeypadPortIN & 0x40 ) == 0 )  KB = 9;
+          else if ( ( KeypadPortIN & 0x80 ) == 0 )  KB = 8;
 
+          KeypadPortOUT = 0x0B;
+          if ( ( KeypadPortIN & 0x10 ) == 0 )  KB = 7;
+          else if ( ( KeypadPortIN & 0x20 ) == 0 )  KB = 6;
+          else if ( ( KeypadPortIN & 0x40 ) == 0 )  KB = 5;
+          else if ( ( KeypadPortIN & 0x80 ) == 0 )  KB = 4;
 
-  // Function to handle keypad interrupt
-  #pragma vector=PORT2_VECTOR
-  __interrupt void Port_2(void) {
-      // Delay for debounce
-      __delay_cycles(1000);
+          KeypadPortOUT = 0x07;
+          if ( ( KeypadPortIN & 0x10 ) == 0 )  KB = 3;
+          else if ( ( KeypadPortIN & 0x20 ) == 0 )  KB = 2;
+          else if ( ( KeypadPortIN & 0x40 ) == 0 )  KB = 1;
+          else if ( ( KeypadPortIN & 0x80 ) == 0 )  KB = 0;
+//----------------Statement1--------------------------------------
 
-      // Read the keypad value
-      int row, col;
-      char key = 0;
-      for (row = 0; row < KEYPAD_ROWS; row++) {
-          P10OUT = 0xFF;     // Set all rows high
-          P10OUT &= ~(0x10 << row); // Set current row as output low
-          __delay_cycles(100);  // Delay for settling
-          col = P10IN & 0x0F; // Read column values
-          if (col != 0x0F) {
-              // Key pressed
-              key = keypad[row][col];
-              break;
+//-----------------Statement2--------------------------------------
+          if(state == state2)
+             if (KB == 1 || KB == 2 || KB == 3 || KB == 4) KBIFG = 1;
 
-          }
+//-----------------------------------------------------------------
+          delay(15000);   // For keypad debounce
+          KeypadPortOUT &= ~0x0F;  // Reset Row1-4
+          KeypadIRQIntPend &= ~BIT1; // Reset Flag
       }
 
-      // Process the key value
-      if (key != 0) {
-          // Do something with the key value
-          // Example: print the key value
-          lcd_data(key);
-      }
 
-      // Clear the interrupt flag
-      P2IFG &= ~BIT1;
-      P10OUT = 0;
+//---------------------------------------------------------------------
+//            Exit from a given LPM
+//---------------------------------------------------------------------
+      switch(lpm_mode){
+      case mode0:
+          LPM0_EXIT; // must be called from ISR only
+          break;
+
+      case mode1:
+          LPM1_EXIT; // must be called from ISR only
+          break;
+
+      case mode2:
+          LPM2_EXIT; // must be called from ISR only
+          break;
+
+      case mode3:
+          LPM3_EXIT; // must be called from ISR only
+          break;
+
+      case mode4:
+          LPM4_EXIT; // must be called from ISR only
+          break;
+      }
   }
 
+
+//*********************************************************************
+//            TIMER A0 ISR
+//*********************************************************************
+#pragma vector = TIMERA0_VECTOR // For delay
+__interrupt void TimerA_ISR (void)
+{
+    if (state == state1){
+        StopAllTimers();
+    }
+}
+
+//*********************************************************************
+//            DMA ISR
+//*********************************************************************
+#pragma vector = DMA_VECTOR
+__interrupt void DMA_ISR (void){
+    StopAllTimers();
+}

@@ -7,14 +7,32 @@
 
 extern enum FSMstate state;   // global variable
 extern enum SYSmode lpm_mode; // global variable
+extern unsigned int KB;
+extern unsigned int i;
+extern unsigned int EndOfRecord;
+#define RecorderSize        32
+extern int recorder[RecorderSize];
+extern unsigned int KBIFG;
+
+//       SMCLK/(2*freq)
+#define     note0   501
+#define     note1   473
+#define     note2   447
+#define     note3   421
+#define     note4   398
+#define     note5   375
+#define     note6   354
+#define     note7   334
+#define     note8   316
+#define     note9   298
+#define     note10  281
+#define     note11  265
+#define     note12  250
 
 extern void sysConfig(void);
-extern void SetByteToPort(char); // Added By RK
+extern void SetByteToPort(char);
 extern void clrPortByte(char);
 extern void delay(unsigned int);
-
-extern void wait_1_sec();
-
 extern void enterLPM(unsigned char);
 extern void enable_interrupts();
 extern void disable_interrupts();
@@ -23,9 +41,9 @@ extern void write_signal_shape_tmp_LCD();
 
 extern __interrupt void PBs_handler(void);
 extern __interrupt void PBs_handler_P2(void);
-
-extern void start_stop_meas();
-
+extern __interrupt void Timer_A0(void);
+extern __interrupt void DMA_ISR(void);
+extern __interrupt void Timer_A1(void);
 
 #endif
 
@@ -37,9 +55,9 @@ extern void start_stop_meas();
     #define LCD_WAIT DelayMs(5)
 #endif
 
-
-//  CONFIG: change values according to your port pin selection
-
+/*----------------------------------------------------------
+  CONFIG: change values according to your port pin selection
+------------------------------------------------------------*/
 #define LCD_EN(a)   (!a ? (P2OUT&=~0X20) : (P2OUT|=0X20)) // P2.5 is lcd enable pin
 #define LCD_EN_DIR(a)   (!a ? (P2DIR&=~0X20) : (P2DIR|=0X20)) // P2.5 pin direction
 
@@ -52,9 +70,9 @@ extern void start_stop_meas();
 #define LCD_DATA_OFFSET 0x04 //data pin selection offset for 4 bit mode, variable range is 0-4, default 0 - Px.0-3, no offset
 
 
-
-//          END CONFIG
-
+/*---------------------------------------------------------
+  END CONFIG
+-----------------------------------------------------------*/
 #define FOURBIT_MODE    0x0
 #define EIGHTBIT_MODE   0x1
 #define LCD_MODE        FOURBIT_MODE
@@ -82,24 +100,13 @@ extern void start_stop_meas();
 #define lcd_function_set    lcd_cmd(0x3C) // 8bit,two lines,5x10 dots
 #define lcd_new_line        lcd_cmd(0xC0)
 
-
 extern void lcd_cmd(unsigned char);
-extern void lcd_head(int row);
 extern void lcd_data(unsigned char);
 extern void lcd_puts(const char * s);
 extern void lcd_init();
 extern void lcd_strobe();
 extern void DelayMs(unsigned int);
-
-extern void set_pwm();
-extern void stop_pwm();
-
-extern void lcd_print_num(int num);
-extern unsigned int get_ADC();
-extern void freqMeas();
 extern void DelayUs(unsigned int);
-//
-
 /*
  *  Delay functions for HI-TECH C on the PIC18
  *

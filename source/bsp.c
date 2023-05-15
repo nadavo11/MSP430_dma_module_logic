@@ -3,77 +3,100 @@
 //-----------------------------------------------------------------------------  
 //           GPIO configuration
 //-----------------------------------------------------------------------------
-
 void GPIOconfig(void){
  // volatile unsigned int i; // in case of while loop usage
   
   WDTCTL = WDTHOLD | WDTPW;		// Stop WDT
    
-  // LCD configuration//////////////////////////////////
+  // LCD configuration
   LCD_DATA_WRITE &= ~0xFF;
   LCD_DATA_DIR |= 0xF0;    // P1.4-P1.7 To Output('1')
   LCD_DATA_SEL &= ~0xF0;   // Bit clear P2.4-P2.7
   LCD_CTL_SEL  &= ~0xE0;   // Bit clear P2.5-P2.7
   
-  // Generator Setup
-  //From the table at CCIx p2.4
-  GenPortDir &=  ~BIT4;               // P2.4 Input Capture = '1'
-  GenPortSel |=  BIT4;              // P2.4 Select = '1'
-
   // Buzzer Setup
   BuzzPortDir |= BIT2;             // P2.2 Output compare - '1'
   BuzzPortSel |= BIT2;             // P2.2 Select = '1'
   BuzzPortOut &= ~BIT2;             // P2.2 out = '0'
 
+  // Keypad Setup
+  KeypadPortSel &= ~0xFF;
+  KeypadPortDIR = 0x0F; //10.0-10.3 output, 10.4-10.7 input
+  KeypadPortOUT = 0x00; // CLR output
+
+  // Keypad IRQ Setup
+  KeypadIRQPortSel &= ~BIT1;
+  KeypadIRQPortDir &= ~BIT1;             // P2.1 input
+  KeypadIRQIntEdgeSel |= BIT1;         // pull-up mode  P2.1 - '1'
+  KeypadIRQIntEn |= BIT1;               // P2.1 - '1'
+  KeypadIRQIntPend &= ~0xFF;            // clear pending interrupts P2.1
+
   // PushButtons Setup
   PBsArrPortSel &= ~0x07;           //
   PBsArrPortOut &= ~0x07;            // Set P1Out to '0'
   PBsArrPortDir &= ~0x07;            // P1.0-2 - Input ('0')
-  PBsArrPortDir |= 0x08;             // P1.3 - Output ('1')
   PBsArrIntEdgeSel |= 0x03;  	     // pull-up mode   P1.0-P1.1 - '1'
   PBsArrIntEdgeSel &= ~0x0C;         // pull-down mode  P1.2 - '0'
   PBsArrIntEn |= 0x07;               // P1.0-2 - '1'
   PBsArrIntPend &= ~0xFF;            // clear pending interrupts P1.0-P1.3 all P1
   
-  // PushButton 3 Setup For Main Lab
-   PB3sArrPortOut &= ~BIT0;            // Set P2Out to '0'
-
-
-   //Keypad config
-   P10DIR = 0xF0;     // Set P10.7..4 as input / P10.3..0 as output
-   //P10IES = 0xFF;     // Enable pull-up/pull-down resistors on P10
-   P10OUT = 0x00;     // Set pull-up mode for P10
-   P2OUT &= ~ BIT1;     // Set pull-up mode for P2.1
-
-   //keypad irq config
-   P2SEL &= ~BIT1;
-   P2DIR &= ~(BIT1);  // Set P2.1 as input
-   //P2REN |= BIT1;     // Enable pull-up/pull-down resistor on P2.1
-   P2IFG &= ~BIT1;
-   P2IES &= ~BIT1;    // Interrupt on falling edge (key press)
-   P2IE  |= BIT1;    // Enable interrupt on P2.1
-   __enable_interrupt(); // Enable global interrupts
-
-   //PIN 2.1 is the measurement pin
-    meas_DIR            |= BIT0;
-    meas_SEL            &= ~BIT0;
-
-    meas_OUT            &= ~BIT0;
-    P2IE                &= ~BIT0;
+//  // PushButton 3 Setup For Main Lab
+//   PB3sArrPortSel &= ~BIT0;           //
+//   PB3sArrPortOut &= ~BIT0;            // Set P2Out to '0'
+//   PB3sArrPortDir &= ~BIT0;            // P2.0 - Input ('0')
+//   PB3sArrIntEdgeSel &= ~BIT0;         // pull-down mode  P2.0 - '0'
+//   PB3sArrIntEn |= BIT0;               // P1.0-2 - '1'
+//   PB3sArrIntPend &= ~BIT0;            // clear pending interrupts P2.0
 
   _BIS_SR(GIE);                     // enable interrupts globally
 
 
 }
 
-
-//------------------------------------------------------------------------------------- 
-//            Timer 1sec configuration
 //-------------------------------------------------------------------------------------
-void TIMER0_A0_config(void){
-    WDTCTL = WDTPW + WDTHOLD;                 // Stop WDT
-    TA0CCTL0 = CCIE;
-    TACCR0 = 0xFFFF;
-    TA0CTL = TASSEL_2 + MC_0 + ID_3;  //  select: 2 - SMCLK ; control: 3 - Up/Down  ; divider: 3 - /8
-//    __bis_SR_register(LPM0_bits + GIE);       // Enter LPM0 w/ interrupt
-} 
+//            Timer A 345msec configuration
+//-------------------------------------------------------------------------------------
+void TIMER_A0_config(void){
+   // WDTCTL = WDTPW + WDTHOLD;                 // Stop WDT
+    TACCR0 = 0xB0A3; // (2^20/8)*345m = 45219 -> 0xB0A3
+    TACCTL2 = 0;
+    TACCR2 = 0;
+    TACCTL0 = CCIE;
+    TA0CTL = TASSEL_2 + MC_1 + ID_3;  //  select: 2 - SMCLK ; control: 1 - Up ; divider: 3 - /8
+}
+//-------------------------------------------------------------------------------------
+//            Timer B PWM configuration
+//-------------------------------------------------------------------------------------
+void TIMERB_config(void){
+ //   FLL_CTL0 |= XCAP14PF;         // Configure load caps remove later
+    TBCCTL1 = OUTMOD_4; // TACCR1 toggle
+    TBCCR0 = 0;
+    TBCTL = TBSSEL_2 + MC_1;   //SMCLK, up-mode
+}
+//-------------------------------------------------------------------------------------
+//            DMA configuration
+//-------------------------------------------------------------------------------------
+void DMA_config(void){
+    DMA0CTL = DMAEN + DMASRCINCR_3 + DMASWDW + DMAIE; //repeated-single, source inc, word-word trans, Interupt enable
+    DMACTL0 = DMA0TSEL_1; //TACCR2_IFG trigger
+}
+
+void DMA_config_Task3(void){ // For Main Lab
+
+}
+//-------------------------------------------------------------------------------------
+//            Stop All Timers
+//-------------------------------------------------------------------------------------
+void StopAllTimers(void){
+
+    TACTL = MC_0; // halt timer A
+    TBCTL = MC_0; // halt timer B
+    TBCCTL1 = 0x00; // stop PWM
+    DMA0CTL = 0; // Stop DMA0
+
+
+}
+
+
+
+
