@@ -15,8 +15,6 @@ void main(void){
   lpm_mode = mode0;     // start in idle state on RESET
   sysConfig();     // Configure GPIO, Stop Timers, Init LCD
 
-  lcd_data('a');
-
   while(1){
 
       switch(state){

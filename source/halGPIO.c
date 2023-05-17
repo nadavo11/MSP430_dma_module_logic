@@ -237,7 +237,6 @@ void delay(unsigned int t){  //
 	    state = state1;
 	    PBsArrIntPend &= ~PB0;
 	}
-	// If PB1, Show LCD Menu and reset scroll
     else if(PBsArrIntPend & PB1){
         state = state2;
         lcd_clear();
@@ -314,8 +313,6 @@ void delay(unsigned int t){  //
 //----------------Statement1--------------------------------------
 
 //-----------------Statement2--------------------------------------
-          if(state == state2)
-             if (KB == 1 || KB == 2 || KB == 3 || KB == 4) KBIFG = 1;
 
 //-----------------------------------------------------------------
           delay(15000);   // For keypad debounce
@@ -351,21 +348,11 @@ void delay(unsigned int t){  //
   }
 
 
-//*********************************************************************
-//            TIMER A0 ISR
-//*********************************************************************
-#pragma vector = TIMERA0_VECTOR // For delay
-__interrupt void TimerA_ISR (void)
-{
-    if (state == state1){
-        StopAllTimers();
-    }
-}
 
 //*********************************************************************
 //            DMA ISR
 //*********************************************************************
-#pragma vector = DMA_VECTOR
-__interrupt void DMA_ISR (void){
-    StopAllTimers();
-}
+//#pragma vector = DMA_VECTOR
+//__interrupt void DMA_ISR (void){
+//    StopAllTimers();
+//}

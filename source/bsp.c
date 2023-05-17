@@ -89,10 +89,10 @@ void DMA_config_Task3(void){ // For Main Lab
 //-------------------------------------------------------------------------------------
 void StopAllTimers(void){
 
-    TACTL = MC_0; // halt timer A
+    //TACTL = MC_0; // halt timer A
     TBCTL = MC_0; // halt timer B
     TBCCTL1 = 0x00; // stop PWM
-    DMA0CTL = 0; // Stop DMA0
+    //DMA0CTL = 0; // Stop DMA0
 
 
 }

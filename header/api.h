@@ -25,8 +25,6 @@
 #define     note12  250
 
 
-extern void tone_recorder();
-extern void audio_player();
 extern void Show_Menu_LCD();
 extern void uart_start();
 extern void rowSwapDMA( int j, int i);
