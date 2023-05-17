@@ -5,6 +5,7 @@ unsigned int EndOfRecord = 0;
 int Octava6Freqs[] = {note0, note1, note2, note3, note4, note5, note6, note7, note8, note9, note10, note11, note12};
 int j=0;
 unsigned int KBIFG = 0;
+char LED_STATE = 0x1;
 
 //--------------------------------------------------------------------
 //             System Configuration  
@@ -243,11 +244,11 @@ void delay(unsigned int t){  //
         lcd_home();
 	    PBsArrIntPend &= ~PB1;
     }
-	// If PB2, Show LCD Menu according the scroll value
     else if(PBsArrIntPend & PB2){
 
+        state = state3;
 	    PBsArrIntPend &= ~PB2;
-        }
+    }
 //---------------------------------------------------------------------
 //            Exit from a given LPM 
 //---------------------------------------------------------------------	
@@ -346,7 +347,6 @@ void delay(unsigned int t){  //
           break;
       }
   }
-
 
 
 //*********************************************************************

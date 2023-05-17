@@ -31,7 +31,8 @@ void main(void){
 	      break;
 		
       case state3: ; // PB2/3 For final lab
-		break;
+          LED_shift();
+          break;
 
       case state4: //
 		break;

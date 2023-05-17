@@ -120,8 +120,40 @@ void scroll(){
 
 
 
+/*__________________________________________________________
+ *                                                          *
+ *          STATE 3 : DMA Led Shift                          *
+ *__________________________________________________________*/
 
 
+
+void LED_shift(){
+#include "msp430xG46x.h"
+
+const char shift_val[8] = { 1, 2, 4, 8, 16, 32, 64, 128 };
+
+
+  P9DIR |= 0x003;                           // P5.0/5.1 output
+  DMACTL0 = DMA0TSEL_8;                       // DMA channel 0 transfer select 8:  Timer_B (TBCCR0.IFG)
+  DMA0CTL |= DMASRCBYTE | DMADSTBYTE;
+  DMA0SA = (int)shift_val;                  // Source block address
+  DMA0DA = (int)&P9OUT;                     // Destination single address
+  DMA0SZ = 0x8;                            // Block size
+  DMA0CTL = DMADT_4 + DMASRCINCR_3 + DMAEN; // Rpt, inc src
+  DMA0CTL|= DMASBDB;                         // DMA transfer: source word to destination byte
+  TBCTL = TBSSEL_1 + MC_2 + ID_0;           // Clock Source: ACLK , contmode
+  TBCCR0 = 0x200;                          // count to 2**12
+  enable_interrupts();
+  enterLPM(lpm_mode);       // Enter LPM0
+
+ StopAllTimers();
+
+ DMACTL0 = 0;
+ DMA0CTL = 0;
+
+
+
+}
 
 
 

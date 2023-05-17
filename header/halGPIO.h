@@ -12,6 +12,7 @@ extern unsigned int i;
 extern unsigned int EndOfRecord;
 #define RecorderSize        32
 extern int recorder[RecorderSize];
+extern char LED_STATE;
 extern unsigned int KBIFG;
 
 //       SMCLK/(2*freq)

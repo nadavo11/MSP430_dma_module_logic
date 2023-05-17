@@ -29,6 +29,8 @@ extern void Show_Menu_LCD();
 extern void uart_start();
 extern void rowSwapDMA( int j, int i);
 extern void scroll();
+extern void LED_shift();
+
 #endif
 
 

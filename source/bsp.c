@@ -40,6 +40,11 @@ void GPIOconfig(void){
   PBsArrIntEn |= 0x07;               // P1.0-2 - '1'
   PBsArrIntPend &= ~0xFF;            // clear pending interrupts P1.0-P1.3 all P1
   
+
+  //LED Setup
+  LEDsArrPortDir |= 0xFF;
+  LEDsArrPortSel  = 0;
+
 //  // PushButton 3 Setup For Main Lab
 //   PB3sArrPortSel &= ~BIT0;           //
 //   PB3sArrPortOut &= ~BIT0;            // Set P2Out to '0'
@@ -58,7 +63,7 @@ void GPIOconfig(void){
 //-------------------------------------------------------------------------------------
 void TIMER_A0_config(void){
    // WDTCTL = WDTPW + WDTHOLD;                 // Stop WDT
-    TACCR0 = 0xB0A3; // (2^20/8)*345m = 45219 -> 0xB0A3
+    TACCR0 = 0xFFFF; // (2^20/8)*345m = 45219 -> 0xB0A3
     TACCTL2 = 0;
     TACCR2 = 0;
     TACCTL0 = CCIE;
@@ -70,8 +75,8 @@ void TIMER_A0_config(void){
 void TIMERB_config(void){
  //   FLL_CTL0 |= XCAP14PF;         // Configure load caps remove later
     TBCCTL1 = OUTMOD_4; // TACCR1 toggle
-    TBCCR0 = 0;
-    TBCTL = TBSSEL_2 + MC_1;   //SMCLK, up-mode
+    TBCCR0 = 0xFFFF;
+    TBCTL = TBSSEL_2 + MC_1 + ID_3;   //SMCLK, up-mode
 }
 //-------------------------------------------------------------------------------------
 //            DMA configuration
@@ -84,15 +89,17 @@ void DMA_config(void){
 void DMA_config_Task3(void){ // For Main Lab
 
 }
+
 //-------------------------------------------------------------------------------------
 //            Stop All Timers
 //-------------------------------------------------------------------------------------
 void StopAllTimers(void){
 
-    //TACTL = MC_0; // halt timer A
+    TACTL = MC_0; // halt timer A
     TBCTL = MC_0; // halt timer B
-    TBCCTL1 = 0x00; // stop PWM
-    //DMA0CTL = 0; // Stop DMA0
+    TBCCTL0 = 0x00; // stop PWM
+    TBCCR0 = 0;
+    DMA0CTL = 0; // Stop DMA0
 
 
 }

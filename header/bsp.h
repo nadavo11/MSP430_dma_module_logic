@@ -12,9 +12,9 @@
 //#define RGBArrPortOut      P2OUT
 
 // LEDs abstraction
-//#define LEDsArrPort        P1OUT
-//#define LEDsArrPortDir     P1DIR
-//#define LEDsArrPortSel     P1SEL
+#define LEDsArrPort        P9OUT
+#define LEDsArrPortDir     P9DIR
+#define LEDsArrPortSel     P9SEL
 
 // LCDs abstraction
 #define LCD_DATA_WRITE     P1OUT
