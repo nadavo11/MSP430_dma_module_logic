@@ -3,7 +3,7 @@
 
 #include  "../header/bsp.h"    		// private library - BSP layer
 #include  "../header/app.h"    		// private library - APP layer
-
+////UPDATE14;55
 
 extern enum FSMstate state;   // global variable
 extern enum SYSmode lpm_mode; // global variable
@@ -55,10 +55,11 @@ extern __interrupt void Timer_A1(void);
 #else
     #define LCD_WAIT DelayMs(5)
 #endif
+/*__________________________________________________________
+ *                                                          *
+ * CONFIG: change values according to your port pin selection                     *
+ *__________________________________________________________*/
 
-/*----------------------------------------------------------
-  CONFIG: change values according to your port pin selection
-------------------------------------------------------------*/
 #define LCD_EN(a)   (!a ? (P2OUT&=~0X20) : (P2OUT|=0X20)) // P2.5 is lcd enable pin
 #define LCD_EN_DIR(a)   (!a ? (P2DIR&=~0X20) : (P2DIR|=0X20)) // P2.5 pin direction
 
@@ -71,9 +72,11 @@ extern __interrupt void Timer_A1(void);
 #define LCD_DATA_OFFSET 0x04 //data pin selection offset for 4 bit mode, variable range is 0-4, default 0 - Px.0-3, no offset
 
 
-/*---------------------------------------------------------
-  END CONFIG
------------------------------------------------------------*/
+
+/*__________________________________________________________
+ *                                                          *
+ *           END CONFIG                      *
+ *__________________________________________________________*/
 #define FOURBIT_MODE    0x0
 #define EIGHTBIT_MODE   0x1
 #define LCD_MODE        FOURBIT_MODE
@@ -108,14 +111,18 @@ extern void lcd_init();
 extern void lcd_strobe();
 extern void DelayMs(unsigned int);
 extern void DelayUs(unsigned int);
-/*
+ extern void DMA0();
+ extern void DMA1();
+ 
+
+/*__________________________________________________________
+ *                                                          *
  *  Delay functions for HI-TECH C on the PIC18
  *
  *  Functions available:
  *      DelayUs(x)  Delay specified number of microseconds
- *      DelayMs(x)  Delay specified number of milliseconds
-*/
-
+ *      DelayMs(x)  Delay specified number of milliseconds                     *
+ *__________________________________________________________*/
 
 
 

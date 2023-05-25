@@ -1,6 +1,6 @@
 #ifndef _bsp_H_
 #define _bsp_H_
-
+////UPDATE14;55
 //#include  <msp430g2553.h>          // MSP430x2xx
 #include  <msp430xG46x.h>  // MSP430x4xx
 
@@ -75,10 +75,14 @@ extern void GPIOconfig(void);
 extern void TIMER_A0_config(void);
 extern void TIMERB_config(void);
 extern void StopAllTimers(void);
+extern void confDMA3(void);
 
-
-
+// DMA config
+extern void DMA_sw_trigger();
+extern void DMA_DATA(void);
+extern void DMA_config1();
+extern void DMA_set_adresses(char src[],char dst[], int size);
+extern void DMA_config3();
 #endif
-
 
 

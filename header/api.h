@@ -1,13 +1,8 @@
 #ifndef _api_H_
 #define _api_H_
-
+////UPDATE14;55
 #include  "../header/halGPIO.h"     // private library - HAL layer
 
-// Sizes
-#define Song1Size           0x58
-#define Song2Size           0x4A
-#define Song3Size           0x50
-#define RecorderSize        32
 
 //       SMCLK/(2*freq)
 #define     note0   501
@@ -25,12 +20,13 @@
 #define     note12  250
 
 
-extern void Show_Menu_LCD();
 extern void uart_start();
+extern void lcd_reset();
 extern void rowSwapDMA( int j, int i);
 extern void scroll();
 extern void LED_shift();
-
+extern void confDMA3();
+void print_mat();
 #endif
 
 
